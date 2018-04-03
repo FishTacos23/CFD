@@ -41,7 +41,10 @@ class Solution:
         self.v = iv
         self.p = ip
 
+        self.solve_message = 'SOLUTION COMPLETE'
+        self.failed_message = 'SOLUTION FAILED'
+
         self.solve()
 
     def solve(self):
-        pass
+        print self.solve_message

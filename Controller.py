@@ -26,6 +26,7 @@ def project_solution(height, length, gs, u_in):
     y_velocity_viewer = Viewer.FlowContours(v, x, y, 'Y Velocity')
 
     Solver.Solution(p, u, v, bc, pressure_viewer, x_velocity_viewer, y_velocity_viewer)
+    Viewer.keep_open()
 
 
 if __name__ == '__main__':

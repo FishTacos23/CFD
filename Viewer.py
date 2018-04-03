@@ -26,6 +26,7 @@ class FlowContours:
         self.format_fig(initial_field)
 
         plt.show(block=False)
+        plt.tick_params(labelleft='off', labelbottom='off')
         plt.xticks(x)
         plt.yticks(y)
 
@@ -43,3 +44,7 @@ class FlowContours:
         self.cb.draw_all()
         plt.title(self.title)
         plt.grid()
+
+
+def keep_open():
+    plt.show(block=True)

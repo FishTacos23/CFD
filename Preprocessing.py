@@ -53,17 +53,17 @@ def initial_con(x_num, y_num, u=0, v=0, p=0):
     :return: initial u velocities, v velocities, and pressures
     """
 
-    if type(u) is function:
+    if callable(u):
         u_start = u()
     else:
         u_start = u
 
-    if type(v) is function:
+    if callable(v):
         v_start = v()
     else:
         v_start = v
 
-    if type(p) is function:
+    if callable(p):
         p_start = p()
     else:
         p_start = p
