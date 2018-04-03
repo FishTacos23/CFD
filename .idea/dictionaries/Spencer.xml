@@ -2,6 +2,7 @@
   <dictionary name="Spencer">
     <words>
       <w>matplotlib</w>
+      <w>preprocessing</w>
       <w>scipy</w>
     </words>
   </dictionary>
