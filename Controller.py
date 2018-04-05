@@ -14,16 +14,22 @@ import Solver
 def project_solution(height, length, gs, u_in):
 
     # Get Mesh
-    x, y = Preprocessing.gen_mesh(height, length, gs)
+    u_grid, v_grid, p_grid = Preprocessing.gen_mesh(height, length, gs)
 
-    # Get initial values
-    u, v, p = Preprocessing.initial_con(x.shape[0], y.shape[0], 0, 0, 0)
+    # Get Initial Values
+    u, v, p = Preprocessing.initial_con(u_grid[0].shape[0], u_grid[1].shape[0], 0, 0, 0)
+
+    # Get Boundary Conditions
     bc = Preprocessing.boundary_cond('velocity', 'velocity gradient', 'no slip', 'no slip', [u_in, None, None, None])
 
     # Create viewers
-    pressure_viewer = Viewer.FlowContours(p, x, y, 'Pressure')
-    x_velocity_viewer = Viewer.FlowContours(u, x, y, 'X Velocity')
-    y_velocity_viewer = Viewer.FlowContours(v, x, y, 'Y Velocity')
+    pressure_viewer = Viewer.FlowContours(p, p_grid[0], p_grid[1], [0, 0, length, height], 'Pressure')
+    x_velocity_viewer = Viewer.FlowContours(u, u_grid[0], u_grid[1], [0, 0, length, height], 'X Velocity')
+    y_velocity_viewer = Viewer.FlowContours(v, v_grid[0], v_grid[1], [0, 0, length, height], 'Y Velocity')
+
+    pressure_viewer.grid = True
+    x_velocity_viewer.grid = True
+    y_velocity_viewer.grid = True
 
     Solver.Solution(p, u, v, bc, pressure_viewer, x_velocity_viewer, y_velocity_viewer)
     Viewer.keep_open()

@@ -5,6 +5,8 @@ Solver for 2D CFD Simulation
 
 This file uses the control volume method with practice a with the simple scheme to solve a 2d flow field
 """
+import numpy as np
+import math
 
 
 class Solution:
@@ -42,9 +44,21 @@ class Solution:
         self.p = ip
 
         self.solve_message = 'SOLUTION COMPLETE'
-        self.failed_message = 'SOLUTION FAILED'
 
         self.solve()
 
     def solve(self):
+
+        for i in xrange(10):
+
+            val = np.asarray([np.asarray([j for j in xrange(self.u.shape[1])]) for _ in xrange(self.u.shape[0])])
+
+            self.u += np.sin(val*float(i)*2.*math.pi/(self.u.shape[1]*10.))
+            self.v += np.cos(val*float(i)*2.*math.pi/(self.u.shape[1]*10.))
+            self.p += self.u+self.v
+
+            self.v_view.update(self.v)
+            self.p_view.update(self.p)
+            self.u_view.update(self.u)
+
         print self.solve_message

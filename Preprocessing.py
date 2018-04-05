@@ -13,7 +13,7 @@ def gen_mesh(height, length, gs):
 
     """
 
-    This function uses the geometry and grid spacing to lay out nodes in the mesh using practice A.
+    This function uses the geometry and grid spacing to lay out nodes in the mesh for using practice A.
     It returns the x and y location of these nodes as a numpy array
 
     :param height: y distance
@@ -26,10 +26,16 @@ def gen_mesh(height, length, gs):
     :return: position of nodes in mesh
     """
 
-    x = np.linspace(0, length, int(length / gs) + 1)
-    y = np.linspace(0, height, int(height / gs) + 1)
+    ux = np.linspace(-gs, length, int(length / gs)+2, endpoint=True)
+    uy = np.linspace(-gs/2., height+gs/2., int(height / gs)+2, endpoint=True)
 
-    return x, y
+    vx = np.linspace(-gs/2., length+gs/2., int(length / gs)+2, endpoint=True)
+    vy = np.linspace(-gs, height, int(height / gs) + 2, endpoint=True)
+
+    px = np.linspace(-gs/2., length+gs/2., int(length / gs)+2, endpoint=True)
+    py = np.linspace(-gs/2., height+gs/2., int(height / gs)+2, endpoint=True)
+
+    return [ux, uy], [vx, vy], [px, py]
 
 
 def initial_con(x_num, y_num, u=0, v=0, p=0):
