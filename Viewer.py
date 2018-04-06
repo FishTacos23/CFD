@@ -40,6 +40,8 @@ class FlowContours:
 
         plt.show(block=False)
         plt.tick_params(labelleft='off', labelbottom='off', color='white')
+        plt.ylim([vol_bounds[1], vol_bounds[3]])
+        plt.xlim([vol_bounds[0], vol_bounds[2]])
 
     def update(self, field):
 
@@ -58,24 +60,17 @@ class FlowContours:
         self.cb.set_ticks(ticks)
         self.cb.draw_all()
 
-        self.ax.add_patch(patches.Rectangle((self.x.min(), self.y.min()), self.bounds[0]-self.x.min(),
-                                            self.y.max()-self.y.min(), alpha=self.p_a, color=self.p_c))
-
-        self.ax.add_patch(patches.Rectangle((self.x.max(), self.y.min()), self.bounds[2]-self.x.max(),
-                                            self.y.max()-self.y.min(), alpha=self.p_a, color=self.p_c))
-
-        self.ax.add_patch(patches.Rectangle((self.bounds[0], self.y.min()), self.bounds[2]-self.bounds[0],
-                                            self.bounds[1]-self.y.min(), alpha=self.p_a, color=self.p_c))
-
-        self.ax.add_patch(patches.Rectangle((self.bounds[0], self.y.max()), self.bounds[2]-self.bounds[0],
-                                            self.bounds[3]-self.y.max(), alpha=self.p_a, color=self.p_c))
-
         self.fig.suptitle(self.title)
 
         if self.grid:
+
             self.ax.grid()
             self.ax.set_xticks(self.x)
             self.ax.set_yticks(self.y)
+
+        else:
+            self.ax.set_ylim([self.bounds[1], self.bounds[3]])
+            self.ax.set_xlim([self.bounds[0], self.bounds[2]])
 
 
 def keep_open():
