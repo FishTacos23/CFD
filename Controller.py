@@ -23,15 +23,23 @@ def project_solution(height, length, gs, u_in):
     bc = Preprocessing.boundary_cond('velocity', 'velocity gradient', 'no slip', 'no slip', [u_in, None, None, None])
 
     # Create viewers
-    pressure_viewer = Viewer.FlowContours(p, p_grid[0], p_grid[1], [0, 0, length, height], 'Pressure')
-    x_velocity_viewer = Viewer.FlowContours(u, u_grid[0], u_grid[1], [0, 0, length, height], 'X Velocity')
-    y_velocity_viewer = Viewer.FlowContours(v, v_grid[0], v_grid[1], [0, 0, length, height], 'Y Velocity')
+    p_viewer = Viewer.FlowContours(p, p_grid[0], p_grid[1], [0, 0, length, height], 'Pressure')
+    x_v_viewer = Viewer.FlowContours(u, u_grid[0], u_grid[1], [0, 0, length, height], 'X Velocity')
+    y_v_viewer = Viewer.FlowContours(v, v_grid[0], v_grid[1], [0, 0, length, height], 'Y Velocity')
 
-    pressure_viewer.grid = True
-    x_velocity_viewer.grid = True
-    y_velocity_viewer.grid = True
+    # p_viewer.grid = True
+    # x_v_viewer.grid = True
+    # y_v_viewer.grid = True
 
-    Solver.Solution(p, u, v, bc, pressure_viewer, x_velocity_viewer, y_velocity_viewer)
+    cc = .1
+    rho = 1000.
+    mu = .001
+
+    au = .7
+    av = .7
+    ap = .3
+
+    Solver.Solution(p, u, v, u_grid, v_grid, p_grid, bc, cc, au, av, ap, rho, mu, p_viewer, x_v_viewer, y_v_viewer)
     Viewer.keep_open()
 
 
