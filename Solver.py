@@ -206,7 +206,7 @@ class Solution:
         # solve matrix
 
         del_list = [i for i in xrange(self.u_s.shape[1])]
-        for i in xrange(self.u_s.size, self.u_s.size - self.u_s.shape[1], -1):
+        for i in xrange(self.u_s.size-1, self.u_s.size - self.u_s.shape[1], -1):
             del_list.append(i)
         for i in xrange(0, self.u_s.size, self.u_s.shape[1]):
             del_list.append(i)
@@ -299,7 +299,7 @@ class Solution:
         # solve matrix
 
         del_list = [i for i in xrange(self.v_s.shape[1]*2)]
-        for i in xrange(self.v_s.size, self.v_s.size - self.v_s.shape[1], -1):
+        for i in xrange(self.v_s.size-1, self.v_s.size - self.v_s.shape[1], -1):
             del_list.append(i)
         for i in xrange(0, self.v_s.size, self.v_s.shape[1]):
             del_list.append(i)
@@ -351,7 +351,7 @@ class Solution:
                 if j < self.u_s.shape[0] - 1:  # If not on top face
                     n_n = n_num + self.u_s.shape[1]
 
-                if i == 0 or j == 0 or n_n == 0:
+                if i == 0 or j == 0 or n_n < 0 or n_e < 0:
                     self.p_a_mat[n_num][n_num] = 0.
                 else:
 
@@ -362,7 +362,7 @@ class Solution:
 
                     if n_e >= 0:
                         area_e = self.lj[j+1] - self.lj[j]
-                        de = area_e*self.au/self.x_a_mat[n_num][n_e]
+                        de = area_e*self.au/self.x_a_mat[n_e][n_e]  # TODO this is giving a divide by zero warning
                         a_e = self.rho*de*area_e
                         self.p_a_mat[n_num][n_e] = a_e
                         self.p_d[n_num][n_e] = de
@@ -375,8 +375,8 @@ class Solution:
                         self.p_d[n_num][n_w] = dw
                         self.b_mat[n_num] += self.rho * area_w * self.u_n_s[j][i]
                     if n_n >= 0:
-                        area_n = self.li[i + 1] - self.li[1][i]
-                        dn = area_n * self.av / self.y_a_mat[n_num][n_n]
+                        area_n = self.li[i + 1] - self.li[i]
+                        dn = area_n * self.av / self.y_a_mat[n_n][n_n]
                         a_n = self.rho * dn * area_n
                         self.p_a_mat[n_num][n_n] = a_n
                         self.p_d[n_num][n_n] = dn
@@ -393,10 +393,35 @@ class Solution:
                     self.p_a_mat[n_num][n_num] = a_p
 
         # solve matrix
-        a_mat = np.asmatrix(self.p_a_mat)
-        b_mat = np.asmatrix(self.b_mat)
 
-        self.p_p = np.asarray(a_mat.I * b_mat).reshape(self.p_s.shape)
+        del_list = [i for i in xrange(self.p_s.shape[1])]
+        for i in xrange(self.p_s.size - 1, self.p_s.size - self.p_s.shape[1], -1):
+            del_list.append(i)
+        for i in xrange(0, self.p_s.size, self.p_s.shape[1]):
+            del_list.append(i)
+        for i in xrange(self.p_s.shape[1] - 1, self.p_s.size, self.p_s.shape[1]):
+            del_list.append(i)
+
+        a_mat = np.delete(self.p_a_mat, del_list, 0)
+        a_mat = np.delete(a_mat, del_list, 1)
+        b_mat = np.delete(self.b_mat, del_list)
+
+        a_mat = np.asmatrix(a_mat)
+        b_mat = np.asmatrix(b_mat)
+
+        pns = np.asarray(a_mat.I * b_mat.transpose())
+
+        k = 0
+        # assemble coefficients
+        for j in xrange(self.v_s.shape[0]):  # rows
+            for i in xrange(self.v_s.shape[1]):  # columns
+                n_num = j * self.v_s.shape[1] + i
+
+                if n_num in del_list:
+                    self.p_p[j][i] = 0
+                else:
+                    self.p_p[j][i] = pns[k]
+                    k += 1
 
     def correct_values(self):
 
@@ -406,8 +431,8 @@ class Solution:
                 if i == 0:
                     pass
                 else:
-                    self.u_n[i][j] = self.u_n_s + self.p_d[i][j]*(self.p_p[i-1][j] - self.p_p[i][j])
-                    self.v_n[i][j] = self.v_n_s + self.p_d[i][j]*(self.p_p[i][j-1] - self.p_p[i][j])
+                    self.u_n[j][i] = self.u_n_s[j][i] + self.p_d[j][i]*(self.p_p[j][i-1] - self.p_p[j][i])
+                    self.v_n[j][i] = self.v_n_s[j][i] + self.p_d[j][i]*(self.p_p[j-1][i] - self.p_p[j][i])
 
         # adjust values
         self.p_n = self.p_s + self.ap*self.p_p
