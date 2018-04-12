@@ -164,34 +164,35 @@ class Solution:
                 i_id = i - 1
                 j_id = j - 1
 
-                if i < self.ni:
-                    n_e_id = n_id + 1
-                    fe = self.rho * (self.u_s[i_id + 1][j_id] + self.u_s[i_id][j_id]) / 2.
-                    de = self.mu / (self.x[i_id + 1] - self.x[i_id])
-                    a_e = (de + max(-fe, 0.)) * (self.y[j_id + 1] - self.y[j_id])
-                    self.x_a_mat[n_id][n_e_id] = -a_e
-                if i > 1:
-                    n_w_id = n_id - 1
-                    fw = self.rho * (self.u_s[i_id][j_id] + self.u_s[i_id - 1][j_id]) / 2.
-                    dw = self.mu / (self.x[i_id] - self.x[i_id - 1])
-                    a_w = (dw + max(fw, 0.)) * (self.y[j_id + 1] - self.y[j_id])
-                    self.x_a_mat[n_id][n_w_id] = -a_w
+                n_e_id = n_id + 1
+                fe = self.rho * (self.u_s[i_id + 1][j_id] + self.u_s[i_id][j_id]) / 2.
+                de = self.mu / (self.x[i_id + 1] - self.x[i_id])
+                a_e = (de + max(-fe, 0.)) * (self.y[j_id + 1] - self.y[j_id])
+                self.x_a_mat[n_id][n_e_id] = -a_e
+
+                n_w_id = n_id - 1
+                fw = self.rho * (self.u_s[i_id][j_id] + self.u_s[i_id - 1][j_id]) / 2.
+                dw = self.mu / (self.x[i_id] - self.x[i_id - 1])
+                a_w = (dw + max(fw, 0.)) * (self.y[j_id + 1] - self.y[j_id])
+                self.x_a_mat[n_id][n_w_id] = -a_w
+
                 if j > 2:
                     n_s_id = n_id - self.ni
                     fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
                     ds = self.mu / (self.Y[j_id] - self.Y[j_id - 1])
                     a_s = (ds + max(fs, 0.)) * (self.X[i_id] - self.X[i_id - 1])
                     self.x_a_mat[n_id][n_s_id] = -a_s
-                elif j == 2:
+                else:
                     fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
                     a_p += self.mu * (self.X[i_id] - self.X[i_id-1]) / (self.Y[j_id] - self.y[j_id])
+
                 if j < self.nj - 1:
                     n_n_id = n_id + self.ni
                     fn = self.rho * (self.v_s[i_id][j_id + 1] + self.v_s[i_id - 1][j_id + 1]) / 2.
                     dn = self.mu / (self.Y[j_id + 1] - self.Y[j_id])
                     a_n = (dn + max(-fn, 0.)) * (self.X[i_id] - self.X[i_id - 1])
                     self.x_a_mat[n_id][n_n_id] = -a_n
-                elif j == self.nj - 1:
+                else:
                     fn = self.rho * (self.v_s[i_id][j_id + 1] + self.v_s[i_id - 1][j_id + 1]) / 2.
                     a_p += self.mu * (self.X[i_id] - self.X[i_id-1]) / (self.y[j_id+1] - self.Y[j_id])
 
@@ -213,95 +214,60 @@ class Solution:
         self.b_mat = np.zeros(self.v_s.size)
 
         # assemble coefficients
-        for i in xrange(self.v_s.shape[1]):
-            for j in xrange(self.v_s.shape[0]):
+        for n_num in xrange(1, self.n_max + 1):
 
-                n_num = j*self.u_s.shape[1] + i
+            i, j = self.num_to_ij(n_num)
 
-                n_e = -1
-                n_w = -1
-                n_n = -1
-                n_s = -1
+            # ADJUST FOR INDEXING
+            n_id = n_num - 1
 
-                if i < self.u_s.shape[1] - 1:  # If not on the right face
-                    n_e = n_num + 1
-                if i > 0:  # If not on the left face
-                    n_w = n_num - 1
-                if j > 0:  # If not on bottom face
-                    n_s = n_num - self.u_s.shape[1]
-                if j < self.u_s.shape[0] - 1:  # If not on top face
-                    n_n = n_num + self.u_s.shape[1]
+            if i == 1 or j < 3 or j == self.nj:
+                self.y_a_mat[n_id][n_id] = 1.
+            elif i == self.ni:
+                self.y_a_mat[n_id][n_id] = 1.
+                self.y_a_mat[n_id][n_id - 1] = -1.
+            else:
 
-                if i == 0 or j == 0 or n_n < 0 or n_e < 0:
-                    self.y_a_mat[n_num][n_num] = 0.
-                else:
+                # ADJUST FOR INDEXING
+                i_id = i - 1
+                j_id = j - 1
 
-                    a_e = 0
-                    a_w = 0
-                    a_n = 0
-                    a_s = 0
+                n_e_id = n_id + 1
+                fe = self.rho * (self.u_n_s[i_id+1][j_id] + self.u_n_s[i_id+1][j_id-1]) / 2.
+                de = self.mu / (self.X[i_id+1] - self.X[i_id])
+                a_e = (de + max(-fe, 0.)) * (self.Y[j_id] - self.Y[j_id-1])
+                self.y_a_mat[n_id][n_e_id] = -a_e
 
-                    fe = 0
-                    fw = 0
-                    fn = 0
-                    fs = 0
+                n_w_id = n_id - 1
+                fw = self.rho * (self.u_n_s[i_id][j_id] + self.u_n_s[i_id][j_id-1]) / 2.
+                dw = self.mu / (self.X[i_id] - self.X[i_id - 1])
+                a_w = (dw + max(fw, 0.)) * (self.Y[j_id] - self.Y[j_id-1])
+                self.y_a_mat[n_id][n_w_id] = -a_w
 
-                    if n_e >= 0:
-                        fe = self.rho * (self.u_n_s[j][i + 1] + self.u_n_s[j-1][i + 1]) / 2.
-                        de = self.mu / (self.X[i + 1] - self.X[i])
-                        a_e = (de + max(-fe, 0.)) * (self.Y[j] - self.Y[j - 1])
-                        self.y_a_mat[n_num][n_e] = a_e
-                    if n_w >= 0:
-                        fw = self.rho * (self.u_n_s[j][i] + self.u_n_s[j - 1][i]) / 2.
-                        dw = self.mu / (self.X[i] - self.X[i - 1])
-                        a_w = (dw + max(fw, 0.)) * (self.Y[j] - self.Y[j - 1])
-                        self.y_a_mat[n_num][n_w] = a_w
-                    if n_n >= 0:
-                        fn = self.rho * (self.v_s[j][i] + self.v_s[j + 1][i]) / 2.
-                        dn = self.mu / (self.y[j + 1] - self.y[j])
-                        a_n = (dn + max(-fn, 0.)) * (self.x[i + 1] - self.x[i])
-                        self.y_a_mat[n_num][n_n] = a_n
-                    if n_s >= 0:
-                        fs = self.rho * (self.v_s[j - 1][i] + self.v_s[j][i]) / 2.
-                        ds = self.mu / (self.y[j] - self.y[j - 1])
-                        a_s = (ds + max(-fs, 0.)) * (self.x[i + 1] - self.x[i])
-                        self.y_a_mat[n_num][n_s] = a_s
+                n_s_id = n_id - self.ni
+                fs = self.rho * (self.v_s[i_id][j_id-1] + self.v_s[i_id][j_id]) / 2.
+                ds = self.mu / (self.y[j_id] - self.y[j_id-1])
+                a_s = (ds + max(fs, 0.)) * (self.x[i_id+1] - self.x[i_id])
+                self.y_a_mat[n_id][n_s_id] = -a_s
 
-                    a_p = a_e + a_w + a_n + a_s + (fe - fw) * (
-                            self.Y[j] - self.Y[j - 1]) + (fn - fs) * (self.x[i + 1] - self.x[i])
+                n_n_id = n_id + self.ni
+                fn = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id][j_id+1]) / 2.
+                dn = self.mu / (self.y[j_id+1] - self.y[j_id])
+                a_n = (dn + max(-fn, 0.)) * (self.x[i_id+1] - self.x[i_id])
+                self.y_a_mat[n_id][n_n_id] = -a_n
 
-                    self.y_a_mat[n_num][n_num] = a_p
+                a_p = a_e + a_w + a_n + a_s+(fe-fw)*(self.Y[j_id]-self.Y[j_id-1])+(fn-fs)*(self.x[i_id+1]-self.x[i_id])
+
+                self.y_a_mat[n_id][n_id] = a_p / self.av
+
+                self.b_mat[n_id] = (self.p_s[i_id][j_id-1]-self.p_s[i_id][j_id])*(self.x[i_id+1] - self.x[i_id]) + \
+                                   ((1. - self.av) * a_p / self.av) * self.v_s[i_id][j_id]
 
         # solve matrix
+        a_mat = np.asmatrix(self.y_a_mat)
+        b_mat = np.asmatrix(self.b_mat)
 
-        del_list = [i for i in xrange(self.v_s.shape[1]*2)]
-        for i in xrange(self.v_s.size-1, self.v_s.size - self.v_s.shape[1], -1):
-            del_list.append(i)
-        for i in xrange(0, self.v_s.size, self.v_s.shape[1]):
-            del_list.append(i)
-        for i in xrange(self.v_s.shape[1]-1, self.v_s.size, self.v_s.shape[1]):
-            del_list.append(i)
-
-        a_mat = np.delete(self.y_a_mat, del_list, 0)
-        a_mat = np.delete(a_mat, del_list, 1)
-        b_mat = np.delete(self.b_mat, del_list)
-
-        a_mat = np.asmatrix(a_mat)
-        b_mat = np.asmatrix(b_mat)
-
-        vns = np.asarray(a_mat.I * b_mat.transpose())
-
-        k = 0
-        # assemble coefficients
-        for j in xrange(self.v_s.shape[0]):  # rows
-            for i in xrange(self.v_s.shape[1]):  # columns
-                n_num = j * self.v_s.shape[1] + i
-
-                if n_num in del_list:
-                    self.v_n_s[j][i] = 0
-                else:
-                    self.v_n_s[j][i] = vns[k]
-                    k += 1
+        self.v_n_s = np.asarray(a_mat.I * b_mat.transpose()).reshape((self.ni, self.nj), order='F')
 
     def pressure(self):
 
