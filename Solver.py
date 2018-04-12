@@ -183,6 +183,7 @@ class Solution:
                     a_s = (ds + max(fs, 0.)) * (self.X[i_id] - self.X[i_id - 1])
                     self.x_a_mat[n_id][n_s_id] = -a_s
                 elif j == 2:
+                    fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
                     a_p += self.mu * (self.X[i_id] - self.X[i_id-1]) / (self.Y[j_id] - self.y[j_id])
                 if j < self.nj - 1:
                     n_n_id = n_id + self.ni
@@ -191,6 +192,7 @@ class Solution:
                     a_n = (dn + max(-fn, 0.)) * (self.X[i_id] - self.X[i_id - 1])
                     self.x_a_mat[n_id][n_n_id] = -a_n
                 elif j == self.nj - 1:
+                    fn = self.rho * (self.v_s[i_id][j_id + 1] + self.v_s[i_id - 1][j_id + 1]) / 2.
                     a_p += self.mu * (self.X[i_id] - self.X[i_id-1]) / (self.y[j_id+1] - self.Y[j_id])
 
                 a_p += a_e + a_w + a_n + a_s+(fe-fw)*(self.y[j_id+1]-self.y[j_id])+(fn-fs)*(self.X[i_id]-self.X[i_id-1])
