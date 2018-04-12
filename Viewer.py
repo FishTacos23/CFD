@@ -7,7 +7,6 @@ This file creates and updates the flow field visualizer
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import numpy as np
 
 
@@ -23,7 +22,7 @@ class FlowContours:
         self.title = title
 
         self.fig = plt.figure()
-        self.im = plt.contourf(x, y, initial_field, 15)
+        self.im = plt.contourf(x, y, initial_field.transpose(), 15)
         self.ax = self.fig.gca()
         self.ax.spines['top'].set_visible(False)
         self.ax.spines['right'].set_visible(False)
@@ -46,7 +45,7 @@ class FlowContours:
     def update(self, field):
 
         self.ax.cla()
-        self.im = self.ax.contourf(self.x, self.y, field, 15)
+        self.im = self.ax.contourf(self.x, self.y, field.transpose(), 15)
         self.format_fig(field)
 
     def format_fig(self, field):

@@ -9,7 +9,7 @@ This file sets up the geometry and mesh of the analysis
 import numpy as np
 
 
-def gen_mesh(height, length, gs):
+def gen_mesh(height, length, gs_x, gs_y):
 
     """
 
@@ -20,20 +20,22 @@ def gen_mesh(height, length, gs):
     :type height: float
     :param length: x distance
     :type length: float
-    :param gs: length of the square grid
-    :type gs: float
+    :param gs_x: length of the square grid
+    :type gs_x: float
+    :param gs_y: length of the square grid
+    :type gs_y: float
 
     :return: position of nodes in mesh
     """
 
-    ux = np.linspace(-gs, length, int(length / gs)+2, endpoint=True)
-    uy = np.linspace(-gs/2., height+gs/2., int(height / gs)+2, endpoint=True)
+    ux = np.linspace(-gs_x, length, int(length / gs_x)+2, endpoint=True)
+    uy = np.linspace(-gs_y/2., height+gs_y/2., int(height / gs_y)+2, endpoint=True)
 
-    vx = np.linspace(-gs/2., length+gs/2., int(length / gs)+2, endpoint=True)
-    vy = np.linspace(-gs, height, int(height / gs) + 2, endpoint=True)
+    vx = np.linspace(-gs_x/2., length+gs_x/2., int(length / gs_x)+2, endpoint=True)
+    vy = np.linspace(-gs_y, height, int(height / gs_y) + 2, endpoint=True)
 
-    px = np.linspace(-gs/2., length+gs/2., int(length / gs)+2, endpoint=True)
-    py = np.linspace(-gs/2., height+gs/2., int(height / gs)+2, endpoint=True)
+    px = np.linspace(-gs_x/2., length+gs_x/2., int(length / gs_x)+2, endpoint=True)
+    py = np.linspace(-gs_y/2., height+gs_y/2., int(height / gs_y)+2, endpoint=True)
 
     return [ux, uy], [vx, vy], [px, py]
 
@@ -74,9 +76,9 @@ def initial_con(x_num, y_num, u=0, v=0, p=0):
     else:
         p_start = p
 
-    pressure = np.zeros((y_num, x_num), dtype=float) + p_start
-    u_vel = np.zeros((y_num, x_num), dtype=float) + u_start
-    v_vel = np.zeros((y_num, x_num), dtype=float) + v_start
+    pressure = np.zeros((x_num, y_num), dtype=float) + p_start
+    u_vel = np.zeros((x_num, y_num), dtype=float) + u_start
+    v_vel = np.zeros((x_num, y_num), dtype=float) + v_start
 
     return u_vel, v_vel, pressure
 
