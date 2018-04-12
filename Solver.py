@@ -206,7 +206,7 @@ class Solution:
         a_mat = np.asmatrix(self.x_a_mat)
         b_mat = np.asmatrix(self.b_mat)
 
-        self.u_n_s = np.asarray(a_mat.I*b_mat.transpose())
+        self.u_n_s = np.asarray(a_mat.I*b_mat.transpose()).reshape((self.ni, self.nj), order='F')
 
     def y_mom(self):
 
@@ -416,10 +416,10 @@ class Solution:
     def conserve_mass(self):
 
         # sum flow along inlet
-        m_out = sum(self.u_n_s[:, -1])
-        m_in = sum(self.u_n_s[:, 1])
+        m_out = sum(self.u_n_s[-1])
+        m_in = sum(self.u_n_s[1])
 
-        self.u_n_s[:, -1] = self.u_n_s[:, -2]*(m_in/m_out)
+        self.u_n_s[-1] = self.u_n_s[-2]*(m_in/m_out)
 
     def num_to_ij(self, num):
 
