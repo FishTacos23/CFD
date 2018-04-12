@@ -157,7 +157,6 @@ class Solution:
 
                 # Initialize Values
                 a_e, a_w, a_n, a_s = [0]*4
-                fe, fw, fn, fs = [0]*4
                 a_p = 0.
 
                 # ADJUST FOR INDEXING
@@ -274,96 +273,63 @@ class Solution:
         self.b_mat = np.zeros(self.p_s.size)
 
         # assemble coefficients
-        for i in xrange(self.p_s.shape[1]):
-            for j in xrange(self.p_s.shape[0]):
+        for n_num in xrange(1, self.n_max + 1):
 
-                n_num = j * self.u_s.shape[1] + i
+            i, j = self.num_to_ij(n_num)
 
-                n_e = -1
-                n_w = -1
-                n_n = -1
-                n_s = -1
+            # ADJUST FOR INDEXING
+            n_id = n_num - 1
 
-                if i < self.u_s.shape[1] - 1:  # If not on the right face
-                    n_e = n_num + 1
-                if i > 0:  # If not on the left face
-                    n_w = n_num - 1
-                if j > 0:  # If not on bottom face
-                    n_s = n_num - self.u_s.shape[1]
-                if j < self.u_s.shape[0] - 1:  # If not on top face
-                    n_n = n_num + self.u_s.shape[1]
+            if i == 1 or i == self.ni or j == 1 or j == self.nj:
+                self.p_a_mat[n_id][n_id] = 1.
 
-                if i == 0 or j == 0 or n_n < 0 or n_e < 0:
-                    self.p_a_mat[n_num][n_num] = 0.
-                else:
+            else:
 
-                    a_e = 0
-                    a_w = 0
-                    a_n = 0
-                    a_s = 0
+                # ADJUST FOR INDEXING
+                i_id = i - 1
+                j_id = j - 1
 
-                    if n_e >= 0:
-                        area_e = self.y[j + 1] - self.y[j]
-                        de = area_e*self.au/self.x_a_mat[n_e][n_e]  # TODO this is giving a divide by zero warning
-                        a_e = self.rho*de*area_e
-                        self.p_a_mat[n_num][n_e] = a_e
-                        self.p_d[n_num][n_e] = de
-                        self.b_mat[n_num] -= self.rho*area_e*self.u_n_s[j][i+1]
-                    if n_w >= 0:
-                        area_w = self.y[j + 1] - self.y[j]
-                        dw = area_w * self.au / self.x_a_mat[n_num][n_num]
-                        a_w = self.rho * dw * area_w
-                        self.p_a_mat[n_num][n_w] = a_w
-                        self.p_d[n_num][n_w] = dw
-                        self.b_mat[n_num] += self.rho * area_w * self.u_n_s[j][i]
-                    if n_n >= 0:
-                        area_n = self.x[i + 1] - self.x[i]
-                        dn = area_n * self.av / self.y_a_mat[n_n][n_n]
-                        a_n = self.rho * dn * area_n
-                        self.p_a_mat[n_num][n_n] = a_n
-                        self.p_d[n_num][n_n] = dn
-                        self.b_mat[n_num] -= self.rho * area_n * self.v_n_s[j+1][i]
-                    if n_s >= 0:
-                        area_s = self.x[i + 1] - self.x[i]
-                        ds = area_s * self.av / self.y_a_mat[n_num][n_s]
-                        a_s = self.rho * ds * area_s
-                        self.p_a_mat[n_num][n_s] = a_s
-                        self.p_d[n_num][n_s] = ds
-                        self.b_mat[n_num] += self.rho * area_s * self.v_n_s[j][i]
-                    a_p = a_e + a_w + a_n + a_s
+                n_e_id = n_id + 1
+                area_e = self.y[j_id+1] - self.y[j_id]
+                de = area_e / self.x_a_mat[n_e_id][n_e_id]
+                a_e = self.rho * de * area_e
+                self.p_a_mat[n_id][n_e_id] = -a_e
+                self.p_d[n_id][n_e_id] = de
+                self.b_mat[n_id] -= self.rho * area_e * self.u_n_s[i_id+1][j_id]
 
-                    self.p_a_mat[n_num][n_num] = a_p
+                n_w_id = n_id - 1
+                area_w = self.y[j_id+1] - self.y[j_id]
+                dw = area_w / self.x_a_mat[n_id][n_id]
+                a_w = self.rho * dw * area_w
+                self.p_a_mat[n_id][n_w_id] = -a_w
+                self.p_d[n_id][n_w_id] = dw
+                self.b_mat[n_id] += self.rho * area_w * self.u_n_s[i_id][j_id]
+
+                n_s_id = n_id - self.ni
+                area_s = self.x[i_id+1] - self.x[i_id]
+                ds = area_s / self.y_a_mat[n_id][n_id]
+                a_s = self.rho * ds * area_s
+                self.p_a_mat[n_id][n_s_id] = -a_s
+                self.p_d[n_id][n_s_id] = ds
+                self.b_mat[n_id] += self.rho * area_s * self.v_n_s[i_id][j_id]
+
+                n_n_id = n_id + self.ni
+                area_n = self.x[i_id+1] - self.x[i_id]
+                dn = area_n / self.y_a_mat[n_n_id][n_n_id]
+                a_n = self.rho * dn * area_n
+                self.p_a_mat[n_id][n_n_id] = -a_n
+                self.p_d[n_id][n_n_id] = dn
+                self.b_mat[n_id] -= self.rho * area_n * self.v_n_s[i_id][j_id+1]
+
+                a_p = a_e + a_w + a_n + a_s
+
+                self.p_a_mat[n_id][n_id] = a_p
 
         # solve matrix
+        a_mat = np.asmatrix(self.p_a_mat)
+        b_mat = np.asmatrix(self.b_mat)
 
-        del_list = [i for i in xrange(self.p_s.shape[1])]
-        for i in xrange(self.p_s.size - 1, self.p_s.size - self.p_s.shape[1], -1):
-            del_list.append(i)
-        for i in xrange(0, self.p_s.size, self.p_s.shape[1]):
-            del_list.append(i)
-        for i in xrange(self.p_s.shape[1] - 1, self.p_s.size, self.p_s.shape[1]):
-            del_list.append(i)
-
-        a_mat = np.delete(self.p_a_mat, del_list, 0)
-        a_mat = np.delete(a_mat, del_list, 1)
-        b_mat = np.delete(self.b_mat, del_list)
-
-        a_mat = np.asmatrix(a_mat)
-        b_mat = np.asmatrix(b_mat)
-
-        pns = np.asarray(a_mat.I * b_mat.transpose())
-
-        k = 0
-        # assemble coefficients
-        for j in xrange(self.v_s.shape[0]):  # rows
-            for i in xrange(self.v_s.shape[1]):  # columns
-                n_num = j * self.v_s.shape[1] + i
-
-                if n_num in del_list:
-                    self.p_p[j][i] = 0
-                else:
-                    self.p_p[j][i] = pns[k]
-                    k += 1
+        self.p_p = np.asarray(a_mat.I * b_mat.transpose()).reshape((self.ni, self.nj), order='F')
 
     def correct_values(self):
 
