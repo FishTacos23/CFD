@@ -105,6 +105,7 @@ class Solution:
     def solve(self):
 
         max_diff = 1.
+        it_count = 0
 
         while max_diff > self.convergence:
 
@@ -132,6 +133,10 @@ class Solution:
             self.v_view.update(self.v_s)
             self.p_view.update(self.p_s)
             self.u_view.update(self.u_s)
+
+            it_count += 1
+
+        print it_count
 
     def x_mom(self):
 
@@ -289,37 +294,61 @@ class Solution:
                 i_id = i - 1
                 j_id = j - 1
 
+                # EAST
                 n_e_id = n_id + 1
                 area_e = self.y[j_id+1] - self.y[j_id]
                 de = area_e / self.x_a_mat[n_e_id][n_e_id]
                 a_e = self.rho * de * area_e
-                self.p_a_mat[n_id][n_e_id] = -a_e
-                self.p_d[n_id][n_e_id] = de
-                self.b_mat[n_id] -= self.rho * area_e * self.u_n_s[i_id+1][j_id]
 
+                if i == self.ni-1:
+                    a_e *= self.au
+                elif i < self.ni-2:
+                    self.p_a_mat[n_id][n_e_id] = -a_e
+                    self.p_d[n_id][n_e_id] = de
+
+                self.b_mat[n_id] -= self.rho * area_e * self.u_n_s[i_id + 1][j_id]
+
+                # WEST
                 n_w_id = n_id - 1
                 area_w = self.y[j_id+1] - self.y[j_id]
                 dw = area_w / self.x_a_mat[n_id][n_id]
                 a_w = self.rho * dw * area_w
-                self.p_a_mat[n_id][n_w_id] = -a_w
-                self.p_d[n_id][n_w_id] = dw
+
+                if i == 2:
+                    a_w *= self.au
+                else:
+                    self.p_a_mat[n_id][n_w_id] = -a_w
+                    self.p_d[n_id][n_w_id] = dw
+
                 self.b_mat[n_id] += self.rho * area_w * self.u_n_s[i_id][j_id]
 
+                # SOUTH
                 n_s_id = n_id - self.ni
                 area_s = self.x[i_id+1] - self.x[i_id]
                 ds = area_s / self.y_a_mat[n_id][n_id]
                 a_s = self.rho * ds * area_s
-                self.p_a_mat[n_id][n_s_id] = -a_s
-                self.p_d[n_id][n_s_id] = ds
+
+                if j == 2:
+                    a_s *= self.av
+                else:
+                    self.p_a_mat[n_id][n_s_id] = -a_s
+                    self.p_d[n_id][n_s_id] = ds
+
                 self.b_mat[n_id] += self.rho * area_s * self.v_n_s[i_id][j_id]
 
+                # NORTH
                 n_n_id = n_id + self.ni
                 area_n = self.x[i_id+1] - self.x[i_id]
                 dn = area_n / self.y_a_mat[n_n_id][n_n_id]
                 a_n = self.rho * dn * area_n
-                self.p_a_mat[n_id][n_n_id] = -a_n
-                self.p_d[n_id][n_n_id] = dn
-                self.b_mat[n_id] -= self.rho * area_n * self.v_n_s[i_id][j_id+1]
+
+                if j == self.nj - 1:
+                    a_n *= self.av
+                else:
+                    self.p_a_mat[n_id][n_n_id] = -a_n
+                    self.p_d[n_id][n_n_id] = dn
+
+                self.b_mat[n_id] -= self.rho * area_n * self.v_n_s[i_id][j_id + 1]
 
                 a_p = a_e + a_w + a_n + a_s
 

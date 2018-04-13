@@ -27,7 +27,7 @@ def project_solution(height, length, gs_x, gs_y, u_in):
     x_v_viewer = Viewer.FlowContours(u, u_grid[0], u_grid[1], [0, 0, length, height], 'X Velocity')
     y_v_viewer = Viewer.FlowContours(v, v_grid[0], v_grid[1], [0, 0, length, height], 'Y Velocity')
 
-    cc = .1
+    cc = .000001
     rho = 1000.
     mu = .001
 
