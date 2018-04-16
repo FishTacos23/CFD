@@ -84,19 +84,18 @@ class Solution:
         self.p_s = ip
 
         # Initialize Values
-        self.x_a_mat = np.zeros((self.u_s.size, self.u_s.size))
-        self.y_a_mat = np.zeros((self.u_s.size, self.u_s.size))
-        self.p_a_mat = np.zeros((self.u_s.size, self.u_s.size))
-        self.p_d = np.zeros((self.u_s.size, self.u_s.size))
-        self.b_mat = np.zeros(self.u_s.size)
+        self.x_a_mat = np.zeros((self.n_max, self.n_max))
+        self.y_a_mat = np.zeros((self.n_max, self.n_max))
+        self.p_a_mat = np.zeros((self.n_max, self.n_max))
+        self.b_mat = np.zeros(self.n_max)
 
-        self.u_n_s = np.empty(iu.shape)
-        self.v_n_s = np.empty(iv.shape)
-        self.p_p = np.empty(ip.shape)
+        self.u_n_s = np.zeros(iu.shape)
+        self.v_n_s = np.zeros(iv.shape)
+        self.p_p = np.zeros(ip.shape)
 
-        self.u_n = np.empty(iu.shape)
-        self.v_n = np.empty(iv.shape)
-        self.p_n = np.empty(ip.shape)
+        self.u_n = np.zeros(iu.shape)
+        self.v_n = np.zeros(iv.shape)
+        self.p_n = np.zeros(ip.shape)
 
         self.solve()
 
@@ -135,12 +134,13 @@ class Solution:
             self.u_view.update(self.u_s)
 
             it_count += 1
+            print it_count
 
         print it_count
 
     def x_mom(self):
 
-        self.b_mat = np.zeros(self.u_s.size)
+        self.b_mat = np.zeros(self.n_max)
 
         # assemble coefficients
         for n_num in xrange(1, self.n_max+1):
@@ -297,6 +297,10 @@ class Solution:
                 # EAST
                 n_e_id = n_id + 1
                 area_e = self.y[j_id+1] - self.y[j_id]
+
+                if self.x_a_mat[n_e_id][n_e_id] == 0:
+                    raise ValueError('Diverged')
+
                 de = area_e / self.x_a_mat[n_e_id][n_e_id]
                 a_e = self.rho * de * area_e
 
@@ -304,7 +308,6 @@ class Solution:
                     a_e *= self.au
                 elif i < self.ni-2:
                     self.p_a_mat[n_id][n_e_id] = -a_e
-                    self.p_d[n_id][n_e_id] = de
 
                 self.b_mat[n_id] -= self.rho * area_e * self.u_n_s[i_id + 1][j_id]
 
@@ -318,7 +321,6 @@ class Solution:
                     a_w *= self.au
                 else:
                     self.p_a_mat[n_id][n_w_id] = -a_w
-                    self.p_d[n_id][n_w_id] = dw
 
                 self.b_mat[n_id] += self.rho * area_w * self.u_n_s[i_id][j_id]
 
@@ -332,7 +334,6 @@ class Solution:
                     a_s *= self.av
                 else:
                     self.p_a_mat[n_id][n_s_id] = -a_s
-                    self.p_d[n_id][n_s_id] = ds
 
                 self.b_mat[n_id] += self.rho * area_s * self.v_n_s[i_id][j_id]
 
@@ -346,7 +347,6 @@ class Solution:
                     a_n *= self.av
                 else:
                     self.p_a_mat[n_id][n_n_id] = -a_n
-                    self.p_d[n_id][n_n_id] = dn
 
                 self.b_mat[n_id] -= self.rho * area_n * self.v_n_s[i_id][j_id + 1]
 
@@ -363,13 +363,21 @@ class Solution:
     def correct_values(self):
 
         # get corrections
-        for i in xrange(self.p_s.shape[1]):
-            for j in xrange(self.p_s.shape[0]):
-                if i == 0:
-                    pass
-                else:
-                    self.u_n[j][i] = self.u_n_s[j][i] + self.p_d[j][i]*(self.p_p[j][i-1] - self.p_p[j][i])
-                    self.v_n[j][i] = self.v_n_s[j][i] + self.p_d[j][i]*(self.p_p[j-1][i] - self.p_p[j][i])
+        for n_num in xrange(1, self.n_max + 1):
+
+            i, j = self.num_to_ij(n_num)
+
+            n_id = n_num - 1
+            i_id = i - 1
+            j_id = j - 1
+
+            if i > 1 and 1 < j < self.nj:
+                self.u_n[i_id][j_id] = (self.u_n_s[i_id][j_id] + (self.y[j_id+1] - self.y[j_id]) *
+                                        (self.p_p[i_id-1][j_id] - self.p_p[i_id][j_id]) / self.x_a_mat[n_id][n_id])
+
+            if 1 < i < self.ni and 1 < j < self.nj:
+                self.v_n[i_id][j_id] = (self.v_n_s[i_id][j_id] + (self.x[i_id+1] - self.x[i_id]) *
+                                        (self.p_p[i_id][j_id-1] - self.p_p[i_id][j_id]) / self.y_a_mat[n_id][n_id])
 
         # adjust values
         self.p_n = self.p_s + self.ap*self.p_p

@@ -31,8 +31,6 @@ class FlowContours:
 
         self.cb = plt.colorbar(self.im)
 
-        self.p_a = 1
-        self.p_c = 'w'
         self.grid = False
 
         self.format_fig(initial_field)

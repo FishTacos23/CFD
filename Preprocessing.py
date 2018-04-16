@@ -80,18 +80,19 @@ def initial_con(x_num, y_num, u=0, v=0, p=0):
     u_vel = np.zeros((x_num, y_num), dtype=float) + u_start
     v_vel = np.zeros((x_num, y_num), dtype=float) + v_start
 
-    v_vel[:, 0] = np.zeros((v_vel.shape[1]))
-    v_vel[:, 1] = np.zeros((v_vel.shape[1]))
-    v_vel[:, -1] = np.zeros((v_vel.shape[1]))
+    v_vel[0] = np.zeros((v_vel.shape[1]))
+    v_vel[:, 0] = np.zeros((v_vel.shape[0]))
+    v_vel[:, 1] = np.zeros((v_vel.shape[0]))
+    v_vel[:, -1] = np.zeros((v_vel.shape[0]))
 
-    u_vel[:, 0] = np.zeros((u_vel.shape[1]))
-    u_vel[:, -1] = np.zeros((u_vel.shape[1]))
-    u_vel[0] = np.zeros((u_vel.shape[0]))
+    u_vel[:, 0] = np.zeros((u_vel.shape[0]))
+    u_vel[:, -1] = np.zeros((u_vel.shape[0]))
+    u_vel[0] = np.zeros((u_vel.shape[1]))
 
-    pressure[:, 0] = np.zeros((pressure.shape[1]))
-    pressure[:, -1] = np.zeros((pressure.shape[1]))
-    pressure[0] = np.zeros((pressure.shape[0]))
-    pressure[-1] = np.zeros((pressure.shape[0]))
+    pressure[:, 0] = np.zeros((pressure.shape[0]))
+    pressure[:, -1] = np.zeros((pressure.shape[0]))
+    pressure[0] = np.zeros((pressure.shape[1]))
+    pressure[-1] = np.zeros((pressure.shape[1]))
 
     return u_vel, v_vel, pressure
 
