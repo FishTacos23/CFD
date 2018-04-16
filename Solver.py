@@ -7,6 +7,7 @@ This file uses the control volume method with practice a with the simple scheme 
 """
 import numpy as np
 import math
+from sys import stdout
 
 
 class Solution:
@@ -97,9 +98,11 @@ class Solution:
         self.v_n = np.zeros(iv.shape)
         self.p_n = np.zeros(ip.shape)
 
+        print('Number of Nodes = ' + str(self.n_max))
+
         self.solve()
 
-        print('Solution Complete')
+        print('\nSolution Complete')
 
     def solve(self):
 
@@ -134,9 +137,8 @@ class Solution:
             self.u_view.update(self.u_s)
 
             it_count += 1
-            print it_count
 
-        print it_count
+            stdout.write("\r" + "Iteration # " + str(it_count))
 
     def x_mom(self):
 

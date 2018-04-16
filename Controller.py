@@ -31,9 +31,9 @@ def project_solution(height, length, gs_x, gs_y, u_in):
     rho = 1000.
     mu = .001
 
-    au = .5
-    av = .5
-    ap = .5
+    au = .7
+    av = .7
+    ap = .3
 
     Solver.Solution(p, u, v, u_grid, v_grid, p_grid, bc, cc, au, av, ap, rho, mu, p_viewer, x_v_viewer, y_v_viewer)
     Viewer.keep_open()
@@ -43,8 +43,8 @@ if __name__ == '__main__':
 
     volume_height = 0.01
     volume_length = 0.05
-    grid_spacing_x = 0.0125
-    grid_spacing_y = 0.0025
+    grid_spacing_x = 0.004
+    grid_spacing_y = 0.0008
     u_inlet = 0.001
 
     project_solution(volume_height, volume_length, grid_spacing_x, grid_spacing_y, u_inlet)
