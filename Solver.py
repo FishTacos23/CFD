@@ -88,7 +88,9 @@ class Solution:
         self.x_a_mat = np.zeros((self.n_max, self.n_max))
         self.y_a_mat = np.zeros((self.n_max, self.n_max))
         self.p_a_mat = np.zeros((self.n_max, self.n_max))
-        self.b_mat = np.zeros(self.n_max)
+        self.x_b_mat = np.zeros(self.n_max)
+        self.y_b_mat = np.zeros(self.n_max)
+        self.p_b_mat = np.zeros(self.n_max)
 
         self.u_n_s = np.zeros(iu.shape)
         self.v_n_s = np.zeros(iv.shape)
@@ -119,8 +121,10 @@ class Solution:
             self.correct_values()
 
             # Calculate Max Difference
-            max_diff = max(np.max(np.abs(self.u_s-self.u_n)), np.max(np.abs(self.v_s-self.v_n)),
-                           np.max(np.abs(self.p_s-self.p_n)))
+            max_diff = self.residuals()
+            # max_diff = max((np.abs(self.u_s-self.u_n)/np.abs(self.u_n).max()).max(),
+            #                (np.abs(self.v_s-self.v_n)/np.abs(self.v_n).max()).max(),
+            #                (np.abs(self.p_s-self.p_n)/np.abs(self.p_n).max()).max())
 
             # Update Values
             self.u_s = self.u_n
@@ -142,7 +146,7 @@ class Solution:
 
     def x_mom(self):
 
-        self.b_mat = np.zeros(self.n_max)
+        self.x_b_mat = np.zeros(self.n_max)
 
         # assemble coefficients
         for n_num in xrange(1, self.n_max+1):
@@ -155,7 +159,7 @@ class Solution:
             if i == 1 or j == 1 or j == self.nj:
                 self.x_a_mat[n_id][n_id] = 1.
             elif i == 2:
-                self.b_mat[n_id] = self.bc['inlet']['value']
+                self.x_b_mat[n_id] = self.bc['inlet']['value']
                 self.x_a_mat[n_id][n_id] = 1.
             elif i == self.ni:
                 self.x_a_mat[n_id][n_id] = 1.
@@ -206,18 +210,18 @@ class Solution:
 
                 self.x_a_mat[n_id][n_id] = a_p / self.au
 
-                self.b_mat[n_id] = (self.p_s[i_id-1][j_id]-self.p_s[i_id][j_id]) * (self.y[j_id+1] - self.y[j_id]) + \
-                                   ((1.-self.au)*a_p/self.au) * self.u_s[i_id][j_id]
+                self.x_b_mat[n_id] = (self.p_s[i_id-1][j_id]-self.p_s[i_id][j_id]) * (self.y[j_id+1] - self.y[j_id]) + \
+                                     ((1.-self.au)*a_p/self.au) * self.u_s[i_id][j_id]
 
         # solve matrix
         a_mat = np.asmatrix(self.x_a_mat)
-        b_mat = np.asmatrix(self.b_mat)
+        b_mat = np.asmatrix(self.x_b_mat)
 
         self.u_n_s = np.asarray(a_mat.I*b_mat.transpose()).reshape((self.ni, self.nj), order='F')
 
     def y_mom(self):
 
-        self.b_mat = np.zeros(self.v_s.size)
+        self.y_b_mat = np.zeros(self.v_s.size)
 
         # assemble coefficients
         for n_num in xrange(1, self.n_max + 1):
@@ -266,18 +270,18 @@ class Solution:
 
                 self.y_a_mat[n_id][n_id] = a_p / self.av
 
-                self.b_mat[n_id] = (self.p_s[i_id][j_id-1]-self.p_s[i_id][j_id])*(self.x[i_id+1] - self.x[i_id]) + \
-                                   ((1. - self.av) * a_p / self.av) * self.v_s[i_id][j_id]
+                self.y_b_mat[n_id] = (self.p_s[i_id][j_id-1]-self.p_s[i_id][j_id])*(self.x[i_id+1] - self.x[i_id]) + \
+                                     ((1. - self.av) * a_p / self.av) * self.v_s[i_id][j_id]
 
         # solve matrix
         a_mat = np.asmatrix(self.y_a_mat)
-        b_mat = np.asmatrix(self.b_mat)
+        b_mat = np.asmatrix(self.y_b_mat)
 
         self.v_n_s = np.asarray(a_mat.I * b_mat.transpose()).reshape((self.ni, self.nj), order='F')
 
     def pressure(self):
 
-        self.b_mat = np.zeros(self.p_s.size)
+        self.p_b_mat = np.zeros(self.p_s.size)
 
         # assemble coefficients
         for n_num in xrange(1, self.n_max + 1):
@@ -311,7 +315,7 @@ class Solution:
                 elif i < self.ni-2:
                     self.p_a_mat[n_id][n_e_id] = -a_e
 
-                self.b_mat[n_id] -= self.rho * area_e * self.u_n_s[i_id + 1][j_id]
+                self.p_b_mat[n_id] -= self.rho * area_e * self.u_n_s[i_id + 1][j_id]
 
                 # WEST
                 n_w_id = n_id - 1
@@ -324,7 +328,7 @@ class Solution:
                 else:
                     self.p_a_mat[n_id][n_w_id] = -a_w
 
-                self.b_mat[n_id] += self.rho * area_w * self.u_n_s[i_id][j_id]
+                self.p_b_mat[n_id] += self.rho * area_w * self.u_n_s[i_id][j_id]
 
                 # SOUTH
                 n_s_id = n_id - self.ni
@@ -337,7 +341,7 @@ class Solution:
                 else:
                     self.p_a_mat[n_id][n_s_id] = -a_s
 
-                self.b_mat[n_id] += self.rho * area_s * self.v_n_s[i_id][j_id]
+                self.p_b_mat[n_id] += self.rho * area_s * self.v_n_s[i_id][j_id]
 
                 # NORTH
                 n_n_id = n_id + self.ni
@@ -350,7 +354,7 @@ class Solution:
                 else:
                     self.p_a_mat[n_id][n_n_id] = -a_n
 
-                self.b_mat[n_id] -= self.rho * area_n * self.v_n_s[i_id][j_id + 1]
+                self.p_b_mat[n_id] -= self.rho * area_n * self.v_n_s[i_id][j_id + 1]
 
                 a_p = a_e + a_w + a_n + a_s
 
@@ -358,7 +362,7 @@ class Solution:
 
         # solve matrix
         a_mat = np.asmatrix(self.p_a_mat)
-        b_mat = np.asmatrix(self.b_mat)
+        b_mat = np.asmatrix(self.p_b_mat)
 
         self.p_p = np.asarray(a_mat.I * b_mat.transpose()).reshape((self.ni, self.nj), order='F')
 
@@ -401,3 +405,13 @@ class Solution:
             i = self.ni
 
         return i, j
+
+    def residuals(self):
+
+        u_vec = np.matrix(self.u_n.reshape(self.u_n.size, order='F'))
+        v_vec = np.matrix(self.v_n.reshape(self.v_n.size, order='F'))
+
+        u_residual = np.abs(np.array(np.matrix(self.x_a_mat) * u_vec.T).reshape(self.x_b_mat.shape) - self.x_b_mat)
+        v_residual = np.abs(np.array(np.matrix(self.y_a_mat) * v_vec.T).reshape(self.y_b_mat.shape) - self.y_b_mat)
+
+        return max(u_residual.max(), v_residual.max())
