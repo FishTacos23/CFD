@@ -12,7 +12,7 @@ from sys import stdout
 
 class Solution:
 
-    def __init__(self, ip, iu, iv, un, vn, pn, bc, cc, au, av, ap, rho, mu, p_view=None, u_view=None, v_view=None):
+    def __init__(self, ip, iu, iv, lx, bx, ly, by, bc, cc, au, av, ap, rho, mu, p_view=None, u_view=None, v_view=None):
 
         """
 
@@ -24,12 +24,14 @@ class Solution:
         :type iu: ndarray
         :param iv: initial y velocities
         :type iv: ndarray
-        :param un: x velocity node locations
-        :type un: ndarray
-        :param vn: y velocity node locations
-        :type vn: ndarray
-        :param pn: pressure grid locations
-        :type pn: ndarray
+        :param lx: i node locations
+        :type lx: ndarray
+        :param bx: I node locations
+        :type bx: ndarray
+        :param ly: j node locations
+        :type ly: ndarray
+        :param by: J node locations
+        :type by: ndarray
         :param bc: boundary conditions
         :type bc: dict
         :param cc: convergence criterion
@@ -60,10 +62,10 @@ class Solution:
         # CV Properties
         self.bc = bc
 
-        self.x = un[0]
-        self.X = vn[0]
-        self.Y = un[1]
-        self.y = vn[1]
+        self.x = lx
+        self.X = bx
+        self.Y = by
+        self.y = ly
 
         self.ni = self.x.size
         self.nj = self.y.size
@@ -293,6 +295,11 @@ class Solution:
 
             if i == 1 or i == self.ni or j == 1 or j == self.nj:
                 self.p_a_mat[n_id][n_id] = 1.
+
+            elif i == self.ni - 1:
+
+                self.p_a_mat[n_id][n_id] = 1.
+                self.p_a_mat[n_id][n_id+1] = -1.
 
             else:
 
