@@ -44,10 +44,10 @@ if __name__ == '__main__':
 
     volume_height = 0.01
     volume_length = 0.05
-    grid_spacing_x = 0.0125
-    grid_spacing_y = 0.0025
+    grid_spacing_x = 0.003
+    grid_spacing_y = 0.0006
     u_inlet = 0.001
-    criteria = .000001
+    criteria = .00000001
     density = 1000.
     viscosity = .001
 

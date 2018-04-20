@@ -166,6 +166,8 @@ class Solution:
             elif i == self.ni:
                 self.x_a_mat[n_id][n_id] = 1.
                 self.x_a_mat[n_id][n_id-1] = -1.
+            elif self.nj/2 - 2 < j < self.nj/2 + 2 and self.ni/2 - 2 < i < self.ni/2 + 3:
+                self.x_a_mat[n_id][n_id] = 1.
             else:
 
                 # Initialize Values
@@ -188,7 +190,14 @@ class Solution:
                 a_w = (dw + max(fw, 0.)) * (self.y[j_id + 1] - self.y[j_id])
                 self.x_a_mat[n_id][n_w_id] = -a_w
 
-                if j > 2:
+                if j == self.nj/2 + 2 and self.ni/2-2 < i < self.ni/2 + 3:
+                    if self.ni/2-1 < i < self.ni/2 + 2:
+                        fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
+                        a_p += self.mu * (self.X[i_id] - self.X[i_id - 1]) / (self.Y[j_id] - self.y[j_id])
+                    else:
+                        fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
+                        a_p += self.mu * (self.X[i_id] - self.X[i_id - 1]) / ((self.Y[j_id] - self.y[j_id])*2.)
+                elif j > 2:
                     n_s_id = n_id - self.ni
                     fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
                     ds = self.mu / (self.Y[j_id] - self.Y[j_id - 1])
@@ -198,7 +207,14 @@ class Solution:
                     fs = self.rho * (self.v_s[i_id][j_id] + self.v_s[i_id - 1][j_id]) / 2.
                     a_p += self.mu * (self.X[i_id] - self.X[i_id-1]) / (self.Y[j_id] - self.y[j_id])
 
-                if j < self.nj - 1:
+                if j == self.nj/2 - 2 and self.ni/2-2 < i < self.ni/2 + 3:
+                    if self.ni/2-1 < i < self.ni/2 + 2:
+                        fn = self.rho * (self.v_s[i_id][j_id + 1] + self.v_s[i_id - 1][j_id + 1]) / 2.
+                        a_p += self.mu * (self.X[i_id] - self.X[i_id - 1]) / (self.y[j_id + 1] - self.Y[j_id])
+                    else:
+                        fn = self.rho * (self.v_s[i_id][j_id + 1] + self.v_s[i_id - 1][j_id + 1]) / 2.
+                        a_p += self.mu * (self.X[i_id] - self.X[i_id - 1]) / ((self.y[j_id + 1] - self.Y[j_id])*2.)
+                elif j < self.nj - 1:
                     n_n_id = n_id + self.ni
                     fn = self.rho * (self.v_s[i_id][j_id + 1] + self.v_s[i_id - 1][j_id + 1]) / 2.
                     dn = self.mu / (self.Y[j_id + 1] - self.Y[j_id])
@@ -238,23 +254,44 @@ class Solution:
             elif i == self.ni:
                 self.y_a_mat[n_id][n_id] = 1.
                 self.y_a_mat[n_id][n_id - 1] = -1.
+            elif self.ni/2 - 2 < i < self.ni + 2 and self.nj/2 - 3 < j < self.nj + 2:
+                self.y_a_mat[n_id][n_id] = 1.
             else:
+
+                a_e, a_w, a_n, a_s = [0] * 4
+                a_p = 0.
 
                 # ADJUST FOR INDEXING
                 i_id = i - 1
                 j_id = j - 1
 
-                n_e_id = n_id + 1
-                fe = self.rho * (self.u_n_s[i_id+1][j_id] + self.u_n_s[i_id+1][j_id-1]) / 2.
-                de = self.mu / (self.X[i_id+1] - self.X[i_id])
-                a_e = (de + max(-fe, 0.)) * (self.Y[j_id] - self.Y[j_id-1])
-                self.y_a_mat[n_id][n_e_id] = -a_e
+                if self.nj/2 - 2 < j < self.nj + 3 and i == self.ni/2 - 2:
+                    if j == self.nj/2 or j == self.nj/2 + 1:
+                        a_p += self.mu * (self.Y[j_id] - self.Y[j_id - 1]) / (self.X[i_id] - self.x[i_id])
+                        fe = self.rho * (self.u_n_s[i_id + 1][j_id] + self.u_n_s[i_id + 1][j_id - 1]) / 2.
+                    else:
+                        a_p += self.mu * (self.Y[j_id] - self.Y[j_id - 1]) / ((self.X[i_id] - self.x[i_id])*2.)
+                        fe = self.rho * (self.u_n_s[i_id + 1][j_id] + self.u_n_s[i_id + 1][j_id - 1]) / 2.
+                else:
+                    n_e_id = n_id + 1
+                    fe = self.rho * (self.u_n_s[i_id+1][j_id] + self.u_n_s[i_id+1][j_id-1]) / 2.
+                    de = self.mu / (self.X[i_id+1] - self.X[i_id])
+                    a_e = (de + max(-fe, 0.)) * (self.Y[j_id] - self.Y[j_id-1])
+                    self.y_a_mat[n_id][n_e_id] = -a_e
 
-                n_w_id = n_id - 1
-                fw = self.rho * (self.u_n_s[i_id][j_id] + self.u_n_s[i_id][j_id-1]) / 2.
-                dw = self.mu / (self.X[i_id] - self.X[i_id - 1])
-                a_w = (dw + max(fw, 0.)) * (self.Y[j_id] - self.Y[j_id-1])
-                self.y_a_mat[n_id][n_w_id] = -a_w
+                if self.nj/2 - 2 < j < self.nj + 3 and i == self.ni/2 + 2:
+                    if j == self.nj/2 or j == self.nj/2 + 1:
+                        a_p += self.mu * (self.Y[j_id] - self.Y[j_id - 1]) / (self.X[i_id] - self.x[i_id])
+                        fw = self.rho * (self.u_n_s[i_id][j_id] + self.u_n_s[i_id][j_id-1]) / 2.
+                    else:
+                        a_p += self.mu * (self.Y[j_id] - self.Y[j_id - 1]) / ((self.X[i_id] - self.x[i_id])*2.)
+                        fw = self.rho * (self.u_n_s[i_id][j_id] + self.u_n_s[i_id][j_id-1]) / 2.
+                else:
+                    n_w_id = n_id - 1
+                    fw = self.rho * (self.u_n_s[i_id][j_id] + self.u_n_s[i_id][j_id-1]) / 2.
+                    dw = self.mu / (self.X[i_id] - self.X[i_id - 1])
+                    a_w = (dw + max(fw, 0.)) * (self.Y[j_id] - self.Y[j_id-1])
+                    self.y_a_mat[n_id][n_w_id] = -a_w
 
                 n_s_id = n_id - self.ni
                 fs = self.rho * (self.v_s[i_id][j_id-1] + self.v_s[i_id][j_id]) / 2.
@@ -268,7 +305,7 @@ class Solution:
                 a_n = (dn + max(-fn, 0.)) * (self.x[i_id+1] - self.x[i_id])
                 self.y_a_mat[n_id][n_n_id] = -a_n
 
-                a_p = a_e + a_w + a_n + a_s+(fe-fw)*(self.Y[j_id]-self.Y[j_id-1])+(fn-fs)*(self.x[i_id+1]-self.x[i_id])
+                a_p += a_e + a_w + a_n + a_s+(fe-fw)*(self.Y[j_id]-self.Y[j_id-1])+(fn-fs)*(self.x[i_id+1]-self.x[i_id])
 
                 self.y_a_mat[n_id][n_id] = a_p / self.av
 
@@ -294,6 +331,9 @@ class Solution:
             n_id = n_num - 1
 
             if i == 1 or i == self.ni or j == 1 or j == self.nj:
+                self.p_a_mat[n_id][n_id] = 1.
+
+            elif self.nj/2 - 2 < j < self.nj/2 + 2 and self.ni/2 - 2 < i < self.ni/2 + 2:
                 self.p_a_mat[n_id][n_id] = 1.
 
             elif i == self.ni - 1:
